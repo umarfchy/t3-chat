@@ -1,34 +1,42 @@
+// external import
 import { type NextPage } from "next";
+import PubNub, { type PubnubConfig } from "pubnub";
+import { useState, useEffect, type FormEvent } from "react";
+import { PubNubProvider, usePubNub } from "pubnub-react";
 // import { api } from "~/utils/api";
 
-import { useState, useEffect } from "react";
-import PubNub from "pubnub";
-import { PubNubProvider, usePubNub } from "pubnub-react";
+// internal import
 import { env } from "~/env.mjs";
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-
-const ChatContainer = () => {
+const ChatContainer = ({
+  userId,
+  channel,
+}: {
+  userId: string;
+  channel: string;
+}) => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const pubnub = new PubNub({
+    userId,
     publishKey: env.NEXT_PUBLIC_PUBLISHER_KEY,
     subscribeKey: env.NEXT_PUBLIC_SUBSCRIBER_KEY,
-    uuid: "myUniqueUUID",
   });
 
   return (
     <PubNubProvider client={pubnub}>
-      <Chat />
+      <Chat channel={channel} />
     </PubNubProvider>
   );
 };
 
-const Chat = () => {
+const Chat = ({ channel }: { channel: string }) => {
   const pubnub = usePubNub();
-  const [channels] = useState(["awesome-channel"]);
-  const [messages, addMessage] = useState([]);
+  // const [channels] = useState(["awesome-channel"]);
+  const [messages, addMessage] = useState<string[]>([]);
   const [message, setMessage] = useState("");
 
   const handleMessage = (event) => {
+    console.log("eventFromSubscriber", { event });
     const message = event.message;
     if (typeof message === "string" || message.hasOwnProperty("text")) {
       const text = message.text || message;
@@ -36,28 +44,27 @@ const Chat = () => {
     }
   };
 
-  const sendMessage = (message) => {
-    if (message) {
-      pubnub
-        .publish({ channel: channels[0], message })
-        .then(() => setMessage(""));
-    }
-  };
-
   useEffect(() => {
     pubnub.addListener({ message: handleMessage });
-    pubnub.subscribe({ channels });
-  }, [pubnub, channels]);
+    pubnub.subscribe({ channels: [channel] });
+  }, [pubnub, channel]);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log({ event });
+
+    if (message) {
+      pubnub.publish({ channel, message }).then(() => {
+        // addMessage((messages) => [...messages, message]);
+        setMessage("");
+      });
+    }
   };
 
   return (
     <div>
       <div>
-        <div>React Chat Example</div>
+        <div>Chat Room {channel}</div>
         <div>
           {messages.map((message, index) => {
             return <div key={`message-${index}`}>{message}</div>;
@@ -69,29 +76,22 @@ const Chat = () => {
             type="text"
             placeholder="Type your message"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => setMessage(e.target.value.trim())}
           />
-
-          <button
-            onClick={(e) => {
-              sendMessage(message);
-            }}
-          >
-            Send Message
-          </button>
+          <button>Send Message</button>
         </form>
       </div>
     </div>
   );
 };
 
-const channels = [
-  "channel-001",
-  "channel-002",
-  "channel-003",
-  "channel-004",
-  "channel-005",
-];
+// const channels = [
+//   "channel-001",
+//   "channel-002",
+//   "channel-003",
+//   "channel-004",
+//   "channel-005",
+// ];
 
 const users = ["user-001", "user-002", "user-003", "user-004", "user-005"];
 
@@ -103,7 +103,7 @@ const chats = [
   },
   {
     id: "chat-002",
-    channel: "channel-002",
+    channel: "channel-001",
     participants: ["user-001", "user-002", "user-003"],
   },
   {
@@ -163,7 +163,7 @@ const Home: NextPage = () => {
                   key={chat.id}
                 >
                   <>{chat.channel}</>
-                  <ChatContainer />
+                  <ChatContainer userId={currentUser} channel={chat.channel} />
                 </div>
               ))}
             </div>
