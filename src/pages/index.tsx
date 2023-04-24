@@ -6,7 +6,8 @@ import { ChatContainer } from "~/components/Chat";
 // internal import
 // import { api } from "~/utils/api";
 
-const users = ["user-001", "user-002", "user-003", "user-004", "user-005"];
+// const users = ["user-001", "user-002", "user-003", "user-004", "user-005"];
+const users = ["user-001", "user-002"];
 
 const chats = [
   {
@@ -14,16 +15,16 @@ const chats = [
     channel: "channel-001",
     participants: ["user-001", "user-002"],
   },
-  {
-    id: "chat-002",
-    channel: "channel-001",
-    participants: ["user-001", "user-002", "user-003"],
-  },
-  {
-    id: "chat-003",
-    channel: "channel-003",
-    participants: ["user-002", "user-003"],
-  },
+  // {
+  //   id: "chat-002",
+  //   channel: "channel-001",
+  //   participants: ["user-001", "user-002", "user-003"],
+  // },
+  // {
+  //   id: "chat-003",
+  //   channel: "channel-003",
+  //   participants: ["user-002", "user-003"],
+  // },
 ];
 
 const Home: NextPage = () => {

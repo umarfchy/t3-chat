@@ -21,19 +21,16 @@ export const Chat = ({ channel, userId }: TChatProps) => {
   const [messages, setMessages] = useState<TMessage[]>([]);
   const [text, setText] = useState("");
 
-  // const handleMessage = (event: MessageEvent) => {
-  //   console.log("eventFromSubscriber", { event });
-  //   const message = event.message;
-  //   if (typeof message === "string" || message.hasOwnProperty("text")) {
-  //     const text = message.text || message;
-  //     addMessage((messages) => [...messages, text]);
-  //   }
-  // };
+  const handleMsgEvent = (event: MessageEvent) => {
+    console.log("eventFromSubscriber", { event });
+    const message = event.message as TMessage;
+    setMessages((messages) => [...messages, message]);
+  };
 
-  // useEffect(() => {
-  //   pubnub.addListener({ message: handleMessage });
-  //   pubnub.subscribe({ channels: [channel] });
-  // }, [pubnub, channel]);
+  useEffect(() => {
+    pubnub.addListener({ message: handleMsgEvent });
+    pubnub.subscribe({ channels: [channel] });
+  }, [pubnub, channel]);
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -50,7 +47,7 @@ export const Chat = ({ channel, userId }: TChatProps) => {
         },
       })
       .then(() => {
-        setMessages((messages) => [...messages, { text, senderId: userId }]);
+        // setMessages((messages) => [...messages, { text, senderId: userId }]);
         setText("");
       });
   };
