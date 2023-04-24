@@ -40,21 +40,30 @@ export const Chat = ({ channel }: { channel: string }) => {
   return (
     <div>
       <div>
-        <div>Chat Room {channel}</div>
+        <div className="mb-8">Chat Room {channel}</div>
         <div>
           {messages.map((message, index) => {
-            return <div key={`message-${index}`}>{message}</div>;
+            return (
+              <p
+                className="my-1 bg-gray-200 px-2 py-1"
+                key={`message-${index}`}
+              >
+                {message}
+              </p>
+            );
           })}
         </div>
         <form onSubmit={handleSubmit}>
           <input
-            className=""
+            className="w-full border-2 border-gray-300 p-2"
             type="text"
             placeholder="Type your message"
             value={message}
             onChange={(e) => setMessage(e.target.value.trim())}
           />
-          <button>Send Message</button>
+          <button className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700">
+            Send Message
+          </button>
         </form>
       </div>
     </div>

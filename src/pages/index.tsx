@@ -72,7 +72,7 @@ const Home: NextPage = () => {
             <div>
               {chats.map((chat) => (
                 <div
-                  className="mr-2 inline-block rounded border-2 border-blue-500 px-4 py-2 hover:border-2 hover:border-blue-700"
+                  className="m-2 inline-block rounded border-2 border-blue-500 px-4 py-2 hover:border-2 hover:border-blue-700"
                   key={chat.id}
                 >
                   <p className="font-bold">{chat.channel}</p>
