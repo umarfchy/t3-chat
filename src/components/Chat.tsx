@@ -30,6 +30,12 @@ export const Chat = ({ channel, userId }: TChatProps) => {
   useEffect(() => {
     pubnub.addListener({ message: handleMsgEvent });
     pubnub.subscribe({ channels: [channel] });
+
+    return () => {
+      pubnub.removeListener({ message: handleMsgEvent });
+      pubnub.unsubscribeAll();
+    };
+
   }, [pubnub, channel]);
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
@@ -42,7 +48,7 @@ export const Chat = ({ channel, userId }: TChatProps) => {
       .publish({
         channel,
         message: {
-          text,
+          text: text.trim(),
           senderId: userId,
         },
       })
@@ -60,8 +66,8 @@ export const Chat = ({ channel, userId }: TChatProps) => {
           {messages.map((message, index) => {
             return (
               <p
-                className={`my-1 px-2 py-1 ${
-                  message.senderId === userId ? "bg-gray-300" : "bg-gray-100"
+                className={`my-1 rounded px-4 py-2 ${
+                  message.senderId === userId ? "bg-green-300" : "bg-blue-300"
                 }`}
                 key={`message-${index}`}
               >
@@ -77,7 +83,7 @@ export const Chat = ({ channel, userId }: TChatProps) => {
             type="text"
             placeholder="Type your message"
             value={text}
-            onChange={(e) => setText(e.target.value.trim())}
+            onChange={(e) => setText(e.target.value)}
           />
           <button className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700">
             Send Message
