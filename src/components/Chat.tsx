@@ -6,35 +6,53 @@ import { PubNubProvider, usePubNub } from "pubnub-react";
 // internal import
 import { env } from "~/env.mjs";
 
-export const Chat = ({ channel }: { channel: string }) => {
+type TMessage = {
+  senderId: string;
+  text: string;
+};
+
+type TChatProps = {
+  channel: string;
+  userId: string;
+};
+
+export const Chat = ({ channel, userId }: TChatProps) => {
   const pubnub = usePubNub();
-  const [messages, addMessage] = useState<string[]>([]);
-  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<TMessage[]>([]);
+  const [text, setText] = useState("");
 
-  const handleMessage = (event: MessageEvent) => {
-    console.log("eventFromSubscriber", { event });
-    const message = event.message;
-    if (typeof message === "string" || message.hasOwnProperty("text")) {
-      const text = message.text || message;
-      addMessage((messages) => [...messages, text]);
-    }
-  };
+  // const handleMessage = (event: MessageEvent) => {
+  //   console.log("eventFromSubscriber", { event });
+  //   const message = event.message;
+  //   if (typeof message === "string" || message.hasOwnProperty("text")) {
+  //     const text = message.text || message;
+  //     addMessage((messages) => [...messages, text]);
+  //   }
+  // };
 
-  useEffect(() => {
-    pubnub.addListener({ message: handleMessage });
-    pubnub.subscribe({ channels: [channel] });
-  }, [pubnub, channel]);
+  // useEffect(() => {
+  //   pubnub.addListener({ message: handleMessage });
+  //   pubnub.subscribe({ channels: [channel] });
+  // }, [pubnub, channel]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log({ event });
 
-    if (message) {
-      pubnub.publish({ channel, message }).then(() => {
-        // addMessage((messages) => [...messages, message]);
-        setMessage("");
+    if (!text) return;
+
+    await pubnub
+      .publish({
+        channel,
+        message: {
+          text,
+          senderId: userId,
+        },
+      })
+      .then(() => {
+        setMessages((messages) => [...messages, { text, senderId: userId }]);
+        setText("");
       });
-    }
   };
 
   return (
@@ -45,21 +63,24 @@ export const Chat = ({ channel }: { channel: string }) => {
           {messages.map((message, index) => {
             return (
               <p
-                className="my-1 bg-gray-200 px-2 py-1"
+                className={`my-1 px-2 py-1 ${
+                  message.senderId === userId ? "bg-gray-300" : "bg-gray-100"
+                }`}
                 key={`message-${index}`}
               >
-                {message}
+                {message.text}
               </p>
             );
           })}
         </div>
-        <form onSubmit={handleSubmit}>
+        {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
+        <form onSubmit={handleSendMsg}>
           <input
             className="w-full border-2 border-gray-300 p-2"
             type="text"
             placeholder="Type your message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value.trim())}
+            value={text}
+            onChange={(e) => setText(e.target.value.trim())}
           />
           <button className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700">
             Send Message
