@@ -1,6 +1,6 @@
 // external import
-import PubNub, { type PubnubConfig, type MessageEvent } from "pubnub";
-import { useState, useEffect, type FormEvent } from "react";
+import PubNub, { type MessageEvent } from "pubnub";
+import { useState, useEffect, type FormEvent, FC } from "react";
 import { PubNubProvider, usePubNub } from "pubnub-react";
 
 // internal import
@@ -48,7 +48,7 @@ export const Chat = ({ channel }: { channel: string }) => {
         </div>
         <form onSubmit={handleSubmit}>
           <input
-            className="text-black"
+            className=""
             type="text"
             placeholder="Type your message"
             value={message}
@@ -61,10 +61,15 @@ export const Chat = ({ channel }: { channel: string }) => {
   );
 };
 
-export const ChatContainer = (props: { userId: string; channel: string }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+// { userId: string; channel: string }
+
+type TChatContainerProps = {
+  [key: string]: string;
+};
+
+export const ChatContainer = (props: TChatContainerProps) => {
   const pubnub = new PubNub({
-    userId: props.userId,
+    userId: props?.userId || "user-001",
     publishKey: env.NEXT_PUBLIC_PUBLISHER_KEY,
     subscribeKey: env.NEXT_PUBLIC_SUBSCRIBER_KEY,
   });

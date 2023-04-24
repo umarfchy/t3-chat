@@ -1,6 +1,7 @@
 // external import
 import { useState } from "react";
 import { type NextPage } from "next";
+import { ChatContainer } from "~/components/Chat";
 
 // internal import
 // import { api } from "~/utils/api";
@@ -71,10 +72,10 @@ const Home: NextPage = () => {
             <div>
               {chats.map((chat) => (
                 <div
-                  className="mr-2 inline-block rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                  className="mr-2 inline-block rounded border-2 border-blue-500 px-4 py-2 hover:border-2 hover:border-blue-700"
                   key={chat.id}
                 >
-                  <>{chat.channel}</>
+                  <p className="font-bold">{chat.channel}</p>
                   <ChatContainer userId={currentUser} channel={chat.channel} />
                 </div>
               ))}
