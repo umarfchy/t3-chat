@@ -1,6 +1,6 @@
 // external import
 import PubNub, { type MessageEvent } from "pubnub";
-import { useState, useEffect, type FormEvent, FC } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { PubNubProvider, usePubNub } from "pubnub-react";
 
 // internal import
@@ -35,7 +35,6 @@ export const Chat = ({ channel, userId }: TChatProps) => {
       pubnub.removeListener({ message: handleMsgEvent });
       pubnub.unsubscribeAll();
     };
-
   }, [pubnub, channel]);
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {

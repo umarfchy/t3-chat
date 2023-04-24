@@ -15,11 +15,11 @@ const chats = [
     channel: "channel-001",
     participants: ["user-001", "user-002"],
   },
-  // {
-  //   id: "chat-002",
-  //   channel: "channel-001",
-  //   participants: ["user-001", "user-002", "user-003"],
-  // },
+  {
+    id: "chat-002",
+    channel: "channel-002",
+    participants: ["user-001", "user-002", "user-003"],
+  },
   // {
   //   id: "chat-003",
   //   channel: "channel-003",
