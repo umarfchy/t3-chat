@@ -1,7 +1,7 @@
 // external import
 import { useState } from "react";
 import { type NextPage } from "next";
-import { ChatContainer } from "~/components/Chat";
+import { Chat, ChatProvider } from "~/components/Chat";
 
 // internal import
 // import { api } from "~/utils/api";
@@ -72,28 +72,35 @@ const Home: NextPage = () => {
       {/* list chats */}
       <>
         {currentUser && (
-          <div>
-            <h2 className="mt-6">Chats</h2>
+          <ChatProvider userId={currentUser}>
             <div>
-              {/* show chat rooms */}
-              {chats.map((chat) => (
-                <button
-                  onClick={() => setSelectedChat(chat.channel)}
-                  className="m-2 inline-block rounded border-2 border-blue-500 px-4 py-2 font-bold hover:border-2 hover:border-blue-700"
-                  key={chat.id}
-                >
-                  {chat.channel}
-                </button>
-              ))}
+              <h2 className="mt-6">Chats</h2>
+              <div>
+                {/* show chat rooms */}
+                {chats.map((chat) => (
+                  <button
+                    onClick={() => setSelectedChat(chat.channel)}
+                    className="m-2 inline-block rounded border-2 border-blue-500 px-4 py-2 font-bold hover:border-2 hover:border-blue-700"
+                    key={chat.id}
+                  >
+                    {chat.channel}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* show chat messages */}
+            <div className="mt-8 w-96">
+              {selectedChat ? (
+                <Chat
+                  key={selectedChat}
+                  channel={selectedChat}
+                  userId={currentUser}
+                />
+              ) : null}
+            </div>
+          </ChatProvider>
         )}
-        {/* show chat messages */}
-        <div className="mt-8 w-96">
-          {selectedChat && currentUser && (
-            <ChatContainer userId={currentUser} channel={selectedChat} />
-          )}
-        </div>
       </>
     </>
   );

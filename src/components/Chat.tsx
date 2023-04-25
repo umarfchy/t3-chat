@@ -74,8 +74,11 @@ export const Chat = ({ channel, userId }: TChatProps) => {
               );
             })}
         </div>
-        {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-        <form onSubmit={handleSendMsg}>
+        <form
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onSubmit={handleSendMsg}
+          className="flex items-center justify-center gap-2"
+        >
           <input
             className="w-full border-2 border-gray-300 p-2"
             type="text"
@@ -94,20 +97,21 @@ export const Chat = ({ channel, userId }: TChatProps) => {
 
 // { userId: string; channel: string }
 
-type TChatContainerProps = {
-  [key: string]: string;
-};
+interface ChatProviderProps {
+  children: JSX.Element[] | null;
+  userId?: string;
+}
 
-export const ChatContainer = (props: TChatContainerProps) => {
+export const ChatProvider = ({ children, userId }: ChatProviderProps) => {
   const pubnub = new PubNub({
-    userId: props?.userId || "user-001",
+    userId: userId || "",
     publishKey: env.NEXT_PUBLIC_PUBLISHER_KEY,
     subscribeKey: env.NEXT_PUBLIC_SUBSCRIBER_KEY,
   });
 
   return (
-    <PubNubProvider client={pubnub}>
-      <Chat {...props} />
-    </PubNubProvider>
+    <>
+      <PubNubProvider client={pubnub}>{children}</PubNubProvider>
+    </>
   );
 };
