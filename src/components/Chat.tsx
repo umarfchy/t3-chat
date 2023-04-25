@@ -14,15 +14,16 @@ export const Chat = () => {
   const { currentUser: userId } = useAuth();
   const { messages, setMessages, selectedChat } = useChat();
 
-  const handleMsgEvent = (event: MessageEvent) => {
-    // console.log("chatEventFromSubscriber", { event });
-    const message = event.message as TMessage;
-
-    if (message.type !== "chat-message") return;
-    setMessages([...messages, message]);
-  };
-
   useEffect(() => {
+    const handleMsgEvent = (event: MessageEvent) => {
+      console.log("I'm rendering from Chat.tsx");
+      // console.log("chatEventFromSubscriber", { event });
+      const message = event.message as TMessage;
+
+      if (message.type !== "chat-message") return;
+      setMessages([...messages, message]);
+    };
+
     if (!selectedChat?.channel) return;
     pubnub.addListener({ message: handleMsgEvent });
     pubnub.subscribe({ channels: [selectedChat.channel] });
@@ -31,7 +32,7 @@ export const Chat = () => {
       pubnub.removeListener({ message: handleMsgEvent });
       pubnub.unsubscribeAll();
     };
-  }, [pubnub, selectedChat?.channel]);
+  }, [messages, pubnub, selectedChat?.channel, setMessages]);
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
