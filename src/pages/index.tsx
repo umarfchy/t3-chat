@@ -78,10 +78,7 @@ const Home: NextPage = () => {
         {currentUser && (
           <ChatProvider userId={currentUser}>
             {/* show notification */}
-            <NotificationComponent
-              userId={currentUser}
-              selectedChat={selectedChat?.channel}
-            />
+            <NotificationComponent />
             {/* show chat rooms */}
             <div>
               <h2 className="mt-6">Chats</h2>
@@ -102,10 +99,7 @@ const Home: NextPage = () => {
             <div className="mt-8 w-96">
               {selectedChat ? (
                 <Chat
-                  key={selectedChat.id}
-                  channel={selectedChat.channel}
-                  userId={currentUser}
-                  chatInfo={selectedChat}
+                // key={selectedChat.id}
                 />
               ) : null}
             </div>

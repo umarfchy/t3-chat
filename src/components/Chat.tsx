@@ -5,70 +5,61 @@ import { PubNubProvider, usePubNub } from "pubnub-react";
 
 // internal import
 import { env } from "~/env.mjs";
-import { useChat } from "~/store/chat";
+import { useChat, type TMessage } from "~/store/chat";
+import { useAuth } from "~/store/auth";
 
-export type TMessage = {
-  msgType: "chat-message" | "notification";
-  senderId: string;
-  text: string;
-  chatRoomId: string;
-};
-
-export type TChatProps = {
-  channel: string;
-  userId: string;
-  chatInfo: {
-    id: string;
-    channel: string;
-    participants: string[];
-  };
-};
-
-export const Chat = ({ channel, userId, chatInfo }: TChatProps) => {
+export const Chat = () => {
   const pubnub = usePubNub();
-  const { messages, setMessages } = useChat();
   const [text, setText] = useState("");
+  const { currentUser: userId } = useAuth();
+  const { messages, setMessages, selectedChat } = useChat();
 
   const handleMsgEvent = (event: MessageEvent) => {
-    console.log("chatEventFromSubscriber", { event });
+    // console.log("chatEventFromSubscriber", { event });
     const message = event.message as TMessage;
 
-    if (message.msgType !== "chat-message") return;
+    if (message.type !== "chat-message") return;
     setMessages([...messages, message]);
   };
 
   useEffect(() => {
+    if (!selectedChat?.channel) return;
     pubnub.addListener({ message: handleMsgEvent });
-    pubnub.subscribe({ channels: [channel] });
+    pubnub.subscribe({ channels: [selectedChat.channel] });
 
     return () => {
       pubnub.removeListener({ message: handleMsgEvent });
       pubnub.unsubscribeAll();
     };
-  }, [pubnub, channel]);
+  }, [pubnub, selectedChat?.channel]);
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!text) return;
+    if (!userId || !selectedChat?.channel || !text) return;
     try {
-      await pubnub.publish({
-        channel,
-        message: {
-          msgType: "chat-message",
-          text: text.trim(),
-          senderId: userId,
-          chatRoomId: channel,
-        },
-      });
+      const chatMessage: TMessage = {
+        type: "chat-message",
+        text: text.trim(),
+        senderId: userId,
+        chatRoomId: selectedChat.channel,
+      };
 
       await pubnub.publish({
-        channel: chatInfo.participants.filter((id) => id !== userId)[0] ?? "",
-        message: {
-          msgType: "notification",
-          text: text.trim(),
-          senderId: userId,
-          chatRoomId: channel,
-        },
+        channel: selectedChat.channel,
+        message: chatMessage,
+      });
+
+      const notificationMessage: TMessage = {
+        type: "notification",
+        text: text.trim(),
+        senderId: userId,
+        chatRoomId: selectedChat.channel,
+      };
+
+      await pubnub.publish({
+        channel:
+          selectedChat.participants.filter((id) => id !== userId)[0] ?? "",
+        message: notificationMessage,
       });
 
       setText("");
@@ -80,7 +71,9 @@ export const Chat = ({ channel, userId, chatInfo }: TChatProps) => {
   return (
     <div>
       <div>
-        <div className="mb-8">Chat Room {channel}</div>
+        {selectedChat?.channel && (
+          <div className="mb-8">Chat Room {selectedChat.channel}</div>
+        )}
         <div>
           {messages.length > 0 &&
             messages.map((message, index) => {
@@ -137,3 +130,4 @@ export const ChatProvider = ({ children, userId }: ChatProviderProps) => {
     </>
   );
 };
+export { TMessage };

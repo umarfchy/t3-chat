@@ -7,7 +7,7 @@ export type TChat = {
 };
 
 export type TMessage = {
-  msgType: "chat-message" | "notification";
+  type: "chat-message" | "notification";
   senderId: string;
   text: string;
   chatRoomId: string;
