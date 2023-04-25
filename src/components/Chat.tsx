@@ -7,7 +7,7 @@ import { PubNubProvider, usePubNub } from "pubnub-react";
 import { env } from "~/env.mjs";
 
 export type TMessage = {
-  msgType: "chat" | "notification";
+  msgType: "chat-message" | "notification";
   senderId: string;
   text: string;
   chatRoomId: string;
@@ -32,7 +32,7 @@ export const Chat = ({ channel, userId, chatInfo }: TChatProps) => {
     console.log("chatEventFromSubscriber", { event });
     const message = event.message as TMessage;
 
-    if (message.msgType !== "chat") return;
+    if (message.msgType !== "chat-message") return;
     setMessages((messages) => [...messages, message]);
   };
 
@@ -53,7 +53,7 @@ export const Chat = ({ channel, userId, chatInfo }: TChatProps) => {
       await pubnub.publish({
         channel,
         message: {
-          msgType: "chat",
+          msgType: "chat-message",
           text: text.trim(),
           senderId: userId,
           chatRoomId: channel,

@@ -1,15 +1,15 @@
 import { type MessageEvent } from "pubnub";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { usePubNub } from "pubnub-react";
 
 // internal import
 import { type TMessage } from "~/components/Chat";
+import { useChat } from "~/store/chat";
 
 export const NotificationComponent = ({ userId = "", selectedChat = "" }) => {
   const userChannel = userId;
-  // external import
   const pubnub = usePubNub();
-  const [messages, setMessages] = useState<TMessage[]>([]);
+  const { messages, setMessages } = useChat();
 
   const handleMsgEvent = (event: MessageEvent) => {
     console.log("notificationEventFromSubscriber", { event });
@@ -21,7 +21,7 @@ export const NotificationComponent = ({ userId = "", selectedChat = "" }) => {
       message.chatRoomId === selectedChat
     )
       return;
-    setMessages((messages) => [...messages, message]);
+    setMessages([...messages, message]);
   };
 
   useEffect(() => {
