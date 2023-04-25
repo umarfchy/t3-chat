@@ -1,11 +1,12 @@
 // external import
 import { useState } from "react";
 import { type NextPage } from "next";
-import { Chat, ChatProvider } from "~/components/Chat";
-import { NotificationComponent } from "~/components/Notification";
 
 // internal import
 // import { api } from "~/utils/api";
+import { Chat, ChatProvider } from "~/components/Chat";
+import { NotificationComponent } from "~/components/Notification";
+import { useAuth } from "~/store/auth";
 
 // const users = ["user-001", "user-002", "user-003", "user-004", "user-005"];
 const users = ["user-001", "user-002"];
@@ -35,7 +36,7 @@ type TChat = {
 };
 
 const Home: NextPage = () => {
-  const [currentUser, setCurrentUser] = useState("");
+  const { currentUser, setCurrentUser } = useAuth();
   const [selectedChat, setSelectedChat] = useState<TChat | null>(null);
   // const hello = api.example.hello.useQuery({ text: "from tRPC" });
 
