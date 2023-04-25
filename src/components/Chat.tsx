@@ -6,24 +6,33 @@ import { PubNubProvider, usePubNub } from "pubnub-react";
 // internal import
 import { env } from "~/env.mjs";
 
-type TMessage = {
+export type TMessage = {
+  msgType: "chat" | "notification";
   senderId: string;
   text: string;
+  chatRoomId: string;
 };
 
-type TChatProps = {
+export type TChatProps = {
   channel: string;
   userId: string;
+  chatInfo: {
+    id: string;
+    channel: string;
+    participants: string[];
+  };
 };
 
-export const Chat = ({ channel, userId }: TChatProps) => {
+export const Chat = ({ channel, userId, chatInfo }: TChatProps) => {
   const pubnub = usePubNub();
   const [messages, setMessages] = useState<TMessage[]>([]);
   const [text, setText] = useState("");
 
   const handleMsgEvent = (event: MessageEvent) => {
-    console.log("eventFromSubscriber", { event });
+    console.log("chatEventFromSubscriber", { event });
     const message = event.message as TMessage;
+
+    if (message.msgType !== "chat") return;
     setMessages((messages) => [...messages, message]);
   };
 
@@ -40,19 +49,31 @@ export const Chat = ({ channel, userId }: TChatProps) => {
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!text) return;
-
-    await pubnub
-      .publish({
+    try {
+      await pubnub.publish({
         channel,
         message: {
+          msgType: "chat",
           text: text.trim(),
           senderId: userId,
+          chatRoomId: channel,
         },
-      })
-      .then(() => {
-        // setMessages((messages) => [...messages, { text, senderId: userId }]);
-        setText("");
       });
+
+      await pubnub.publish({
+        channel: chatInfo.participants.filter((id) => id !== userId)[0] ?? "",
+        message: {
+          msgType: "notification",
+          text: text.trim(),
+          senderId: userId,
+          chatRoomId: channel,
+        },
+      });
+
+      setText("");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
