@@ -39,8 +39,6 @@ export const Chat = ({ channel, userId }: TChatProps) => {
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log({ event });
-
     if (!text) return;
 
     await pubnub
@@ -62,18 +60,19 @@ export const Chat = ({ channel, userId }: TChatProps) => {
       <div>
         <div className="mb-8">Chat Room {channel}</div>
         <div>
-          {messages.map((message, index) => {
-            return (
-              <p
-                className={`my-1 rounded px-4 py-2 ${
-                  message.senderId === userId ? "bg-green-300" : "bg-blue-300"
-                }`}
-                key={`message-${index}`}
-              >
-                {message.text}
-              </p>
-            );
-          })}
+          {messages.length > 0 &&
+            messages.map((message, index) => {
+              return (
+                <p
+                  className={`my-1 rounded px-4 py-2 ${
+                    message.senderId === userId ? "bg-green-300" : "bg-blue-300"
+                  }`}
+                  key={`message-${index}`}
+                >
+                  {message.text}
+                </p>
+              );
+            })}
         </div>
         {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
         <form onSubmit={handleSendMsg}>
@@ -85,7 +84,7 @@ export const Chat = ({ channel, userId }: TChatProps) => {
             onChange={(e) => setText(e.target.value)}
           />
           <button className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700">
-            Send Message
+            ➤
           </button>
         </form>
       </div>
