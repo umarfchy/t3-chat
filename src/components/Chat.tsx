@@ -5,6 +5,7 @@ import { PubNubProvider, usePubNub } from "pubnub-react";
 
 // internal import
 import { env } from "~/env.mjs";
+import { useChat } from "~/store/chat";
 
 export type TMessage = {
   msgType: "chat-message" | "notification";
@@ -25,7 +26,7 @@ export type TChatProps = {
 
 export const Chat = ({ channel, userId, chatInfo }: TChatProps) => {
   const pubnub = usePubNub();
-  const [messages, setMessages] = useState<TMessage[]>([]);
+  const { messages, setMessages } = useChat();
   const [text, setText] = useState("");
 
   const handleMsgEvent = (event: MessageEvent) => {
@@ -33,7 +34,7 @@ export const Chat = ({ channel, userId, chatInfo }: TChatProps) => {
     const message = event.message as TMessage;
 
     if (message.msgType !== "chat-message") return;
-    setMessages((messages) => [...messages, message]);
+    setMessages([...messages, message]);
   };
 
   useEffect(() => {

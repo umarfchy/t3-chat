@@ -15,14 +15,22 @@ export type TMessage = {
 
 export type TChatStore = {
   messages: TMessage[];
+  notifications: TMessage[];
   selectedChat: TChat | null;
   setMessages: (messages: TMessage[]) => void;
+  setNotifications: (notifications: TMessage[]) => void;
   setSelectedChat: (chat: TChat) => void;
+  clearSelectedChat: () => void;
+  clearMessages: () => void;
 };
 
 export const useChat = create<TChatStore>((set) => ({
   messages: [],
+  notifications: [],
   selectedChat: null,
-  setMessages: (messages: TMessage[]) => set({ messages }),
-  setSelectedChat: (chat: TChat) => set({ selectedChat: chat }),
+  setMessages: (messages) => set({ messages }),
+  setNotifications: (notifications) => set({ notifications }),
+  setSelectedChat: (chat) => set({ selectedChat: chat }),
+  clearSelectedChat: () => set({ selectedChat: null }),
+  clearMessages: () => set({ messages: [] }),
 }));

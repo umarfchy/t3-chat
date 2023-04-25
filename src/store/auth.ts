@@ -8,6 +8,6 @@ type TAuthStore = {
 
 export const useAuth = create<TAuthStore>((set) => ({
   currentUser: null,
-  setCurrentUser: (user: string) => set({ currentUser: user }),
+  setCurrentUser: (user) => set({ currentUser: user }),
   clearCurrentUser: () => set({ currentUser: null }),
 }));
