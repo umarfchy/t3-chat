@@ -20,8 +20,7 @@ export type TChatStore = {
   setMessages: (messages: TMessage[]) => void;
   setNotifications: (notifications: TMessage[]) => void;
   setSelectedChat: (chat: TChat) => void;
-  clearSelectedChat: () => void;
-  clearMessages: () => void;
+  clearChatHistory: () => void;
 };
 
 export const useChat = create<TChatStore>((set) => ({
@@ -31,6 +30,6 @@ export const useChat = create<TChatStore>((set) => ({
   setMessages: (messages) => set({ messages }),
   setNotifications: (notifications) => set({ notifications }),
   setSelectedChat: (chat) => set({ selectedChat: chat }),
-  clearSelectedChat: () => set({ selectedChat: null }),
-  clearMessages: () => set({ messages: [] }),
+  clearChatHistory: () =>
+    set({ messages: [], notifications: [], selectedChat: null }),
 }));

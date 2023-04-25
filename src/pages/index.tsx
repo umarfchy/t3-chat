@@ -31,8 +31,7 @@ const chats = [
 
 const Home: NextPage = () => {
   const { currentUser, setCurrentUser, clearCurrentUser } = useAuth();
-  const { selectedChat, setSelectedChat, clearMessages, clearSelectedChat } =
-    useChat();
+  const { selectedChat, setSelectedChat, clearChatHistory } = useChat();
   // const hello = api.example.hello.useQuery({ text: "from tRPC" });
 
   return (
@@ -48,8 +47,7 @@ const Home: NextPage = () => {
               className="mr-2 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700"
               onClick={() => {
                 clearCurrentUser();
-                clearMessages();
-                clearSelectedChat();
+                clearChatHistory();
               }}
             >
               Logout
