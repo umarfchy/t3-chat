@@ -18,13 +18,17 @@ export const Chat = () => {
   const [text, setText] = useState("");
   const { currentUser } = useAuth();
   const { messages, setMessages, selectedChat } = useChat();
-  const messageList = api.example.messages.useQuery(
+  const messageList = api.example.getAllMessages.useQuery(
     { chatId: selectedChat?.id ?? "" },
     {
       enabled: !!selectedChat?.id,
       onSuccess: setMessages,
     }
   );
+
+  const messageMutation = api.example.createMessage.useMutation();
+
+  const notificationMutation = api.example.createNotification.useMutation();
 
   useEffect(() => {
     const handleMsgEvent = (event: MessageEvent) => {
@@ -41,7 +45,7 @@ export const Chat = () => {
     pubnub.subscribe({ channels: [selectedChat.id] });
 
     return () => {
-      pubnub.removeListener({ message: handleMsgEvent });
+      pubnub.removeListener({});
       pubnub.unsubscribeAll();
     };
   }, [messages, pubnub, selectedChat?.id, setMessages]);
@@ -56,39 +60,60 @@ export const Chat = () => {
     )
       return;
     try {
-      const chatMessage: PubSubMessage = {
+      const chatMessage = {
         id: createId(),
         timestamp: new Date(),
-        type: "chat-message",
         text: text.trim(),
         senderId: currentUser.id,
         chatId: selectedChat.id,
       };
 
+      const chatMessageForPubSub: PubSubMessage = {
+        ...chatMessage,
+        type: "chat-message",
+      };
+
+      const singleMessagePromise = messageMutation.mutateAsync(chatMessage);
       const messagePromise = pubnub.publish({
         channel: selectedChat.id,
-        message: chatMessage,
+        message: chatMessageForPubSub,
       });
 
-      const notificationMessage: PubSubMessage = {
+      const participantIds = selectedChat.participants.map(
+        (participant) => participant.id
+      );
+
+      const notificationMessage = {
         id: createId(),
         timestamp: new Date(),
-        type: "notification",
         text: text.trim(),
         senderId: currentUser.id,
         chatId: selectedChat.id,
       };
 
-      const notificationPromise = selectedChat.participants.map(
-        (participant) => {
-          return pubnub.publish({
-            channel: participant.id,
-            message: notificationMessage,
-          });
-        }
-      );
+      const notificationMessageForPubSub: PubSubMessage = {
+        ...notificationMessage,
+        type: "notification",
+      };
 
-      await Promise.all([messagePromise, ...notificationPromise]);
+      const createNotificationPromise = notificationMutation.mutateAsync({
+        ...notificationMessage,
+        recipients: participantIds,
+      });
+
+      const notificationPromise = participantIds.map((id) => {
+        return pubnub.publish({
+          channel: id,
+          message: notificationMessageForPubSub,
+        });
+      });
+
+      await Promise.all([
+        messagePromise,
+        ...notificationPromise,
+        createNotificationPromise,
+        ...notificationPromise,
+      ]);
 
       setText("");
     } catch (error) {
