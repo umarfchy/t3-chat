@@ -2,6 +2,7 @@
 import PubNub, { type MessageEvent } from "pubnub";
 import { useState, useEffect, type FormEvent } from "react";
 import { PubNubProvider, usePubNub } from "pubnub-react";
+import { createId } from "@paralleldrive/cuid2";
 
 // internal import
 import type { Message, Notification } from "@prisma/client";
@@ -9,6 +10,8 @@ import { env } from "~/env.mjs";
 import { api } from "~/utils/api";
 import { useChat } from "~/store/chat";
 import { useAuth } from "~/store/auth";
+
+type PubSubMessage = Message & { type: "chat-message" | "notification" };
 
 export const Chat = () => {
   const pubnub = usePubNub();
@@ -19,7 +22,7 @@ export const Chat = () => {
     { chatId: selectedChat?.id ?? "" },
     {
       enabled: !!selectedChat?.id,
-      onSuccess: (data) => setMessages(data),
+      onSuccess: setMessages,
     }
   );
 
@@ -27,9 +30,9 @@ export const Chat = () => {
     const handleMsgEvent = (event: MessageEvent) => {
       console.log("I'm rendering from Chat.tsx");
       // console.log("chatEventFromSubscriber", { event });
-      const message = event.message as Message;
+      const message = event.message as PubSubMessage;
 
-      if (message.type !== "chat-message") return;
+      if (message.type === "notification") return;
       setMessages([...messages, message]);
     };
 
@@ -45,31 +48,47 @@ export const Chat = () => {
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!currentUser || !selectedChat?.id || !text) return;
+    if (
+      !currentUser ||
+      !selectedChat?.id ||
+      !selectedChat?.participants ||
+      !text
+    )
+      return;
     try {
-      const chatMessage: Message = {
+      const chatMessage: PubSubMessage = {
+        id: createId(),
+        timestamp: new Date(),
         type: "chat-message",
         text: text.trim(),
         senderId: currentUser.id,
-        chatRoomId: selectedChat.id,
+        chatId: selectedChat.id,
       };
 
-      await pubnub.publish({
+      const messagePromise = pubnub.publish({
         channel: selectedChat.id,
         message: chatMessage,
       });
 
-      const notificationMessage: Notification = {
+      const notificationMessage: PubSubMessage = {
+        id: createId(),
+        timestamp: new Date(),
         type: "notification",
         text: text.trim(),
         senderId: currentUser.id,
-        chatRoomId: selectedChat.id,
+        chatId: selectedChat.id,
       };
 
-      // await pubnub.publish({
-      //   channel: selectedChat.participants,
-      //   message: notificationMessage,
-      // });
+      const notificationPromise = selectedChat.participants.map(
+        (participant) => {
+          return pubnub.publish({
+            channel: participant.id,
+            message: notificationMessage,
+          });
+        }
+      );
+
+      await Promise.all([messagePromise, ...notificationPromise]);
 
       setText("");
     } catch (error) {
@@ -82,7 +101,9 @@ export const Chat = () => {
       <div>
         {currentUser?.id && selectedChat?.id && (
           <>
-            <div className="mb-8">Chat Room {selectedChat.id}</div>
+            <div className="mb-8">
+              Chat Room - <span className="font-bold">{selectedChat.name}</span>
+            </div>
             <div>
               {messages.length > 0 &&
                 messages.map((message, index) => {

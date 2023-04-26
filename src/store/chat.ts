@@ -1,9 +1,9 @@
 import { create } from "zustand";
 
 // internal imports
-import type { Chat as ServerChat, Message } from "@prisma/client";
+import type { Chat, Message, User } from "@prisma/client";
 
-type Chat = ServerChat & { participants: string[] };
+type ChatWithParticipants = Chat & { participants?: User[] };
 
 // export type TChat = {
 //   id: string;
@@ -21,10 +21,10 @@ type Chat = ServerChat & { participants: string[] };
 export type TChatStore = {
   messages: Message[];
   // notifications: Message[];
-  selectedChat: Chat | null;
+  selectedChat: ChatWithParticipants | null;
   setMessages: (messages: Message[]) => void;
   // setNotifications: (notifications: Message[]) => void;
-  setSelectedChat: (chat: Chat) => void;
+  setSelectedChat: (chat: ChatWithParticipants) => void;
   clearChatHistory: () => void;
 };
 
