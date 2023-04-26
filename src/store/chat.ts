@@ -1,25 +1,30 @@
 import { create } from "zustand";
 
-export type TChat = {
-  id: string;
-  channel: string;
-  participants: string[];
-};
+// internal imports
+import type { Chat as ServerChat, Message } from "@prisma/client";
 
-export type TMessage = {
-  type: "chat-message" | "notification";
-  senderId: string;
-  text: string;
-  chatRoomId: string;
-};
+type Chat = ServerChat & { participants: string[] };
+
+// export type TChat = {
+//   id: string;
+//   channel: string;
+//   participants: string[];
+// };
+
+// export type TMessage = {
+//   type: "chat-message" | "notification";
+//   senderId: string;
+//   text: string;
+//   chatRoomId: string;
+// };
 
 export type TChatStore = {
-  messages: TMessage[];
-  notifications: TMessage[];
-  selectedChat: TChat | null;
-  setMessages: (messages: TMessage[]) => void;
-  setNotifications: (notifications: TMessage[]) => void;
-  setSelectedChat: (chat: TChat) => void;
+  messages: Message[];
+  // notifications: Message[];
+  selectedChat: Chat | null;
+  setMessages: (messages: Message[]) => void;
+  // setNotifications: (notifications: Message[]) => void;
+  setSelectedChat: (chat: Chat) => void;
   clearChatHistory: () => void;
 };
 
@@ -28,8 +33,12 @@ export const useChat = create<TChatStore>((set) => ({
   notifications: [],
   selectedChat: null,
   setMessages: (messages) => set({ messages }),
-  setNotifications: (notifications) => set({ notifications }),
+  // setNotifications: (notifications) => set({ notifications }),
   setSelectedChat: (chat) => set({ selectedChat: chat }),
   clearChatHistory: () =>
-    set({ messages: [], notifications: [], selectedChat: null }),
+    set({
+      messages: [],
+      //  notifications: [],
+      selectedChat: null,
+    }),
 }));

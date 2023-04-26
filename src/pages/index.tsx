@@ -2,37 +2,22 @@
 import { type NextPage } from "next";
 
 // internal import
-// import { api } from "~/utils/api";
+import { api } from "~/utils/api";
 import { Chat, ChatProvider } from "~/components/Chat";
 import { NotificationComponent } from "~/components/Notification";
 import { useAuth } from "~/store/auth";
 import { useChat } from "~/store/chat";
 
-// const users = ["user-001", "user-002", "user-003", "user-004", "user-005"];
-const users = ["user-001", "user-002"];
-
-const chats = [
-  {
-    id: "chat-001",
-    channel: "channel-001",
-    participants: ["user-001", "user-002"],
-  },
-  {
-    id: "chat-002",
-    channel: "channel-002",
-    participants: ["user-001", "user-002", "user-003"],
-  },
-  // {
-  //   id: "chat-003",
-  //   channel: "channel-003",
-  //   participants: ["user-002", "user-003"],
-  // },
-];
-
 const Home: NextPage = () => {
   const { currentUser, setCurrentUser, clearCurrentUser } = useAuth();
   const { selectedChat, setSelectedChat, clearChatHistory } = useChat();
-  // const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const users = api.example.users.useQuery();
+  const chats = api.example.chats.useQuery(
+    { userId: currentUser?.id ?? "" },
+    {
+      enabled: !!currentUser?.id,
+    }
+  );
 
   return (
     <>
@@ -41,7 +26,7 @@ const Home: NextPage = () => {
         {currentUser ? (
           <div>
             <h1>
-              Welcome <strong>{currentUser}</strong>
+              Welcome <strong>{currentUser.name}</strong>
             </h1>
             <button
               className="mr-2 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700"
@@ -57,15 +42,16 @@ const Home: NextPage = () => {
           <div>
             <h1>Login as any of the following</h1>
             <div>
-              {users.map((user) => (
-                <button
-                  className="mr-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-                  key={user}
-                  onClick={() => setCurrentUser(user)}
-                >
-                  {user}
-                </button>
-              ))}
+              {users.data &&
+                users.data.map((user) => (
+                  <button
+                    className="mr-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                    key={user.id}
+                    onClick={() => setCurrentUser(user)}
+                  >
+                    {user.name}
+                  </button>
+                ))}
             </div>
           </div>
         )}
@@ -74,22 +60,23 @@ const Home: NextPage = () => {
       {/* list chats */}
       <>
         {currentUser && (
-          <ChatProvider userId={currentUser}>
+          <ChatProvider>
             {/* show notification */}
-            <NotificationComponent />
+            {/* <NotificationComponent /> */}
             {/* show chat rooms */}
             <div>
               <h2 className="mt-6">Chats</h2>
               <div>
-                {chats.map((chat) => (
-                  <button
-                    onClick={() => setSelectedChat(chat)}
-                    className="m-2 inline-block rounded border-2 border-blue-500 px-4 py-2 font-bold hover:border-2 hover:border-blue-700"
-                    key={chat.id}
-                  >
-                    {chat.channel}
-                  </button>
-                ))}
+                {chats.data &&
+                  chats.data.map((chat) => (
+                    <button
+                      onClick={() => setSelectedChat(chat)}
+                      className="m-2 inline-block rounded border-2 border-blue-500 px-4 py-2 font-bold hover:border-2 hover:border-blue-700"
+                      key={chat.id}
+                    >
+                      {chat.name}
+                    </button>
+                  ))}
               </div>
             </div>
 

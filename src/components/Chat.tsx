@@ -4,64 +4,72 @@ import { useState, useEffect, type FormEvent } from "react";
 import { PubNubProvider, usePubNub } from "pubnub-react";
 
 // internal import
+import type { Message, Notification } from "@prisma/client";
 import { env } from "~/env.mjs";
-import { useChat, type TMessage } from "~/store/chat";
+import { api } from "~/utils/api";
+import { useChat } from "~/store/chat";
 import { useAuth } from "~/store/auth";
 
 export const Chat = () => {
   const pubnub = usePubNub();
   const [text, setText] = useState("");
-  const { currentUser: userId } = useAuth();
+  const { currentUser } = useAuth();
   const { messages, setMessages, selectedChat } = useChat();
+  const messageList = api.example.messages.useQuery(
+    { chatId: selectedChat?.id ?? "" },
+    {
+      enabled: !!selectedChat?.id,
+      onSuccess: (data) => setMessages(data),
+    }
+  );
 
   useEffect(() => {
     const handleMsgEvent = (event: MessageEvent) => {
       console.log("I'm rendering from Chat.tsx");
       // console.log("chatEventFromSubscriber", { event });
-      const message = event.message as TMessage;
+      const message = event.message as Message;
 
       if (message.type !== "chat-message") return;
       setMessages([...messages, message]);
     };
 
-    if (!selectedChat?.channel) return;
+    if (!selectedChat?.id) return;
     pubnub.addListener({ message: handleMsgEvent });
-    pubnub.subscribe({ channels: [selectedChat.channel] });
+    pubnub.subscribe({ channels: [selectedChat.id] });
 
     return () => {
       pubnub.removeListener({ message: handleMsgEvent });
       pubnub.unsubscribeAll();
     };
-  }, [messages, pubnub, selectedChat?.channel, setMessages]);
+  }, [messages, pubnub, selectedChat?.id, setMessages]);
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!userId || !selectedChat?.channel || !text) return;
+    if (!currentUser || !selectedChat?.id || !text) return;
     try {
-      const chatMessage: TMessage = {
+      const chatMessage: Message = {
         type: "chat-message",
         text: text.trim(),
-        senderId: userId,
-        chatRoomId: selectedChat.channel,
+        senderId: currentUser.id,
+        chatRoomId: selectedChat.id,
       };
 
       await pubnub.publish({
-        channel: selectedChat.channel,
+        channel: selectedChat.id,
         message: chatMessage,
       });
 
-      const notificationMessage: TMessage = {
+      const notificationMessage: Notification = {
         type: "notification",
         text: text.trim(),
-        senderId: userId,
-        chatRoomId: selectedChat.channel,
+        senderId: currentUser.id,
+        chatRoomId: selectedChat.id,
       };
 
-      await pubnub.publish({
-        channel:
-          selectedChat.participants.filter((id) => id !== userId)[0] ?? "",
-        message: notificationMessage,
-      });
+      // await pubnub.publish({
+      //   channel: selectedChat.participants,
+      //   message: notificationMessage,
+      // });
 
       setText("");
     } catch (error) {
@@ -72,55 +80,58 @@ export const Chat = () => {
   return (
     <div>
       <div>
-        {selectedChat?.channel && (
-          <div className="mb-8">Chat Room {selectedChat.channel}</div>
+        {currentUser?.id && selectedChat?.id && (
+          <>
+            <div className="mb-8">Chat Room {selectedChat.id}</div>
+            <div>
+              {messages.length > 0 &&
+                messages.map((message, index) => {
+                  return (
+                    <p
+                      className={`my-1 rounded px-4 py-2 ${
+                        message.senderId === currentUser.id
+                          ? "bg-green-300"
+                          : "bg-blue-300"
+                      }`}
+                      key={`message-${index}`}
+                    >
+                      {message.text}
+                    </p>
+                  );
+                })}
+            </div>
+            <form
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onSubmit={handleSendMsg}
+              className="flex items-center justify-center gap-2"
+            >
+              <input
+                className="w-full border-2 border-gray-300 p-2"
+                type="text"
+                placeholder="Type your message"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+              <button className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700">
+                ➤
+              </button>
+            </form>
+          </>
         )}
-        <div>
-          {messages.length > 0 &&
-            messages.map((message, index) => {
-              return (
-                <p
-                  className={`my-1 rounded px-4 py-2 ${
-                    message.senderId === userId ? "bg-green-300" : "bg-blue-300"
-                  }`}
-                  key={`message-${index}`}
-                >
-                  {message.text}
-                </p>
-              );
-            })}
-        </div>
-        <form
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onSubmit={handleSendMsg}
-          className="flex items-center justify-center gap-2"
-        >
-          <input
-            className="w-full border-2 border-gray-300 p-2"
-            type="text"
-            placeholder="Type your message"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <button className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700">
-            ➤
-          </button>
-        </form>
       </div>
     </div>
   );
 };
 
-// { userId: string; channel: string }
-
 interface ChatProviderProps {
   children: JSX.Element[] | null;
-  userId?: string;
 }
 
-export const ChatProvider = ({ children, userId }: ChatProviderProps) => {
+export const ChatProvider = ({ children }: ChatProviderProps) => {
+  const { currentUser } = useAuth();
+
   const pubnub = new PubNub({
-    userId: userId || "",
+    userId: currentUser?.id || "",
     publishKey: env.NEXT_PUBLIC_PUBLISHER_KEY,
     subscribeKey: env.NEXT_PUBLIC_SUBSCRIBER_KEY,
   });
@@ -131,4 +142,3 @@ export const ChatProvider = ({ children, userId }: ChatProviderProps) => {
     </>
   );
 };
-export { TMessage };
