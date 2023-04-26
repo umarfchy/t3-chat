@@ -71,7 +71,11 @@ const Home: NextPage = () => {
                   chats.data.map((chat) => (
                     <button
                       onClick={() => setSelectedChat(chat)}
-                      className="m-2 inline-block rounded border-2 border-blue-500 px-4 py-2 font-bold hover:border-2 hover:border-blue-700"
+                      className={`m-2 inline-block rounded px-4 py-2 font-bold ${
+                        selectedChat?.id === chat.id
+                          ? "bg-purple-300 text-white"
+                          : "border-2 border-blue-500 hover:border-2 hover:border-blue-700"
+                      }`}
                       key={chat.id}
                     >
                       {chat.name}
