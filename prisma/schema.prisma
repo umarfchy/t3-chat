@@ -10,11 +10,13 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-// model Example {
-//     id        String   @id @default(cuid())
-//     createdAt DateTime @default(now())
-//     updatedAt DateTime @updatedAt
-// }
+model Notification {
+    id        String   @id @default(cuid())
+    timestamp DateTime
+    text      String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId    String
+}
 
 model Message {
     id        String   @id @default(cuid())
@@ -39,10 +41,11 @@ model Chat {
 }
 
 model User {
-    id        String    @id @default(cuid())
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    name      String    @unique
-    chats     Chat[]
-    message   Message[]
+    id           String         @id @default(cuid())
+    createdAt    DateTime       @default(now())
+    updatedAt    DateTime       @updatedAt
+    name         String         @unique
+    chats        Chat[]
+    message      Message[]
+    notification Notification[]
 }
