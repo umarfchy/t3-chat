@@ -1,8 +1,11 @@
 import { create } from "zustand";
 
+// internal import
+import type { User } from "@prisma/client";
+
 type TAuthStore = {
-  currentUser: string | null;
-  setCurrentUser: (user: string) => void;
+  currentUser: User | null;
+  setCurrentUser: (user: User) => void;
   clearCurrentUser: () => void;
 };
 
