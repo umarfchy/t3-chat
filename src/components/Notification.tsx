@@ -1,17 +1,19 @@
-import { type MessageEvent } from "pubnub";
 import { useEffect } from "react";
 import { usePubNub } from "pubnub-react";
+import { type MessageEvent } from "pubnub";
 
 // internal import
-import { type TMessage } from "~/components/Chat";
-import { useChat } from "~/store/chat";
+// import { type TMessage } from "~/components/Chat";
 import { useAuth } from "~/store/auth";
+import { useChat, type PubSubMessage } from "~/store/chat";
 
 export const NotificationComponent = () => {
   const { currentUser } = useAuth();
   const { selectedChat } = useChat();
 
-  const userChannel = currentUser;
+  const userChannel = currentUser?.id;
+  const currentChatChannel = selectedChat?.id;
+
   const pubnub = usePubNub();
   const { messages, setMessages, notifications, setNotifications } = useChat();
 
@@ -20,29 +22,31 @@ export const NotificationComponent = () => {
 
     const handleMsgEvent = (event: MessageEvent) => {
       // console.log("notificationEventFromSubscriber", { event });
-      const eventMessage = event.message as TMessage;
+      const eventMessage = event.message as PubSubMessage;
 
       console.log(
         "----",
-        { eventMessage, currentUser, channel: selectedChat?.channel },
+        { eventMessage, currentUser, channel: currentChatChannel },
         "----"
       );
 
       if (
         eventMessage.type === "chat-message" ||
-        eventMessage.senderId === currentUser ||
-        eventMessage.chatRoomId === selectedChat?.channel
+        eventMessage.chatId === currentChatChannel ||
+        eventMessage.senderId === userChannel
       )
         return;
+
+      const { type, ...rest } = eventMessage;
       // * only set message if it's a notification,
       // * it's not from the current user, and not from the current chat
-      setNotifications([eventMessage, ...notifications]);
+      setNotifications([rest, ...notifications]);
     };
 
     if (!userChannel) return;
 
     pubnub.addListener({ message: handleMsgEvent });
-    pubnub.subscribe({ channels: [userChannel] });
+    pubnub.subscribe({ channels: [userChannel ?? ""] });
 
     return () => {
       pubnub.removeListener({ message: handleMsgEvent });
@@ -50,18 +54,18 @@ export const NotificationComponent = () => {
     };
   }, [
     pubnub,
-    currentUser,
     messages,
     setMessages,
+    currentUser,
     notifications,
     setNotifications,
     userChannel,
-    selectedChat?.channel,
+    currentChatChannel,
   ]);
 
   return (
     <div>
-      <p>{messages.length}</p>
+      <p>{notifications.length}</p>
       <pre>{JSON.stringify({ notifications }, null, 2)}</pre>
     </div>
   );

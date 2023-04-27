@@ -62,7 +62,7 @@ const Home: NextPage = () => {
         {currentUser && (
           <ChatProvider>
             {/* show notification */}
-            {/* <NotificationComponent /> */}
+            <NotificationComponent />
             {/* show chat rooms */}
             <div>
               <h2 className="mt-6">Chats</h2>

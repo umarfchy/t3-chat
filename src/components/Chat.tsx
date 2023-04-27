@@ -5,13 +5,11 @@ import { PubNubProvider, usePubNub } from "pubnub-react";
 import { createId } from "@paralleldrive/cuid2";
 
 // internal import
-import type { Message, Notification } from "@prisma/client";
+// import type { Message, Notification } from "@prisma/client";
 import { env } from "~/env.mjs";
 import { api } from "~/utils/api";
-import { useChat } from "~/store/chat";
+import { useChat, type PubSubMessage } from "~/store/chat";
 import { useAuth } from "~/store/auth";
-
-type PubSubMessage = Message & { type: "chat-message" | "notification" };
 
 export const Chat = () => {
   const pubnub = usePubNub();
