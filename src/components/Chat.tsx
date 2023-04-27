@@ -33,8 +33,13 @@ export const Chat = () => {
       // console.log("chatEventFromSubscriber", { event });
       const message = event.message as PubSubMessage;
 
-      if (message.type === "notification") return;
-      setMessages([...messages, message]);
+      if (
+        message.type === "notification" ||
+        message.senderId === currentUser?.id
+      )
+        return;
+      const { type, ...rest } = message;
+      setMessages([...messages, rest]);
     };
 
     if (!selectedChat?.id) return;
@@ -45,7 +50,7 @@ export const Chat = () => {
       pubnub.removeListener({});
       pubnub.unsubscribeAll();
     };
-  }, [messages, pubnub, selectedChat?.id, setMessages]);
+  }, [currentUser?.id, messages, pubnub, selectedChat?.id, setMessages]);
 
   const handleSendMsg = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,6 +69,8 @@ export const Chat = () => {
         senderId: currentUser.id,
         chatId: selectedChat.id,
       };
+
+      setMessages([...messages, chatMessage]);
 
       const chatMessageForPubSub: PubSubMessage = {
         ...chatMessage,
