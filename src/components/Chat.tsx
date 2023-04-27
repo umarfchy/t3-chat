@@ -27,7 +27,6 @@ export const Chat = () => {
   );
 
   const messageMutation = api.example.createMessage.useMutation();
-
   const notificationMutation = api.example.createNotification.useMutation();
 
   useEffect(() => {
@@ -73,7 +72,7 @@ export const Chat = () => {
         type: "chat-message",
       };
 
-      const singleMessagePromise = messageMutation.mutateAsync(chatMessage);
+      const messagePromiseDb = messageMutation.mutateAsync(chatMessage);
       const messagePromise = pubnub.publish({
         channel: selectedChat.id,
         message: chatMessageForPubSub,
@@ -96,7 +95,7 @@ export const Chat = () => {
         type: "notification",
       };
 
-      const createNotificationPromise = notificationMutation.mutateAsync({
+      const notificationPromiseDb = notificationMutation.mutateAsync({
         ...notificationMessage,
         recipients: participantIds,
       });
@@ -110,9 +109,9 @@ export const Chat = () => {
 
       await Promise.all([
         messagePromise,
+        messagePromiseDb,
         ...notificationPromise,
-        createNotificationPromise,
-        ...notificationPromise,
+        notificationPromiseDb,
       ]);
 
       setText("");
