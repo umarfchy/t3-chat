@@ -10,12 +10,14 @@ import { useChat } from "~/store/chat";
 
 const Home: NextPage = () => {
   const { currentUser, setCurrentUser, clearCurrentUser } = useAuth();
-  const { selectedChat, setSelectedChat, clearChatHistory } = useChat();
+  const { selectedChat, setSelectedChat, clearChatHistory, setChatList } =
+    useChat();
   const users = api.example.users.useQuery();
   const chats = api.example.chats.useQuery(
     { userId: currentUser?.id ?? "" },
     {
       enabled: !!currentUser?.id,
+      onSuccess: setChatList,
     }
   );
 

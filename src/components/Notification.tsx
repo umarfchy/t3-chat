@@ -4,18 +4,25 @@ import { type MessageEvent } from "pubnub";
 
 // internal import
 // import { type TMessage } from "~/components/Chat";
+import type { Notification } from "@prisma/client";
 import { useAuth } from "~/store/auth";
 import { useChat, type PubSubMessage } from "~/store/chat";
 
 export const NotificationComponent = () => {
+  const pubnub = usePubNub();
   const { currentUser } = useAuth();
-  const { selectedChat } = useChat();
+  const {
+    messages,
+    setMessages,
+    selectedChat,
+    setSelectedChat,
+    notifications,
+    setNotifications,
+    chatList,
+  } = useChat();
 
   const userChannel = currentUser?.id;
   const currentChatChannel = selectedChat?.id;
-
-  const pubnub = usePubNub();
-  const { messages, setMessages, notifications, setNotifications } = useChat();
 
   useEffect(() => {
     console.log("I'm rendering from Notification.tsx");
@@ -63,10 +70,27 @@ export const NotificationComponent = () => {
     currentChatChannel,
   ]);
 
+  const handleNotificationClick = (notification: Notification) => {
+    const newlySelectedChat = chatList.find(
+      (chat) => chat.id === notification.chatId
+    );
+    setSelectedChat(newlySelectedChat ?? null);
+  };
+
   return (
     <div>
       <p>{notifications.length}</p>
-      <pre>{JSON.stringify({ notifications }, null, 2)}</pre>
+      {notifications &&
+        notifications.map((notification) => (
+          <div key={notification.id} className="bg-gray-300">
+            <p
+              className="my-2 cursor-pointer"
+              onClick={() => handleNotificationClick(notification)}
+            >
+              {notification.id} - {notification.text}
+            </p>
+          </div>
+        ))}
     </div>
   );
 };
